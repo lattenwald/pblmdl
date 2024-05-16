@@ -1,0 +1,6 @@
+/raw
+/images
+/test-data
+*.json
+__pycache__
+/pyrightconfig.json
