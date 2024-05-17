@@ -1,11 +1,11 @@
 import requests
 import json
 import time
-import os
 import pickle
 from pblmdl import descrambler
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
+from pathlib import Path
 
 
 def feed_key(cookies):
@@ -29,7 +29,7 @@ def liked():
 
     seen = set()
     try:
-        with open('seen', 'rb') as f:
+        with open("seen", "rb") as f:
             seen = pickle.load(f)
     except FileNotFoundError:
         print("'seen' not found")
@@ -54,7 +54,8 @@ def liked():
             print("id: {}".format(id))
             if id in seen:
                 print("already seen, finishing")
-                break
+                save_seen(seen)
+                return
             html = story["html"]
             soup = BeautifulSoup(html, "html.parser")
             for img in soup.select("[data-large-image]"):
@@ -66,17 +67,21 @@ def liked():
                     print("image at {} is not scrambled".format(url))
                 parsed_url = urlparse(url)
                 path = parsed_url.path
-                filename = os.path.basename(path)
+                filename = (
+                    path.replace("/post_img/big/", "", 1)
+                    .replace("/post_img/", "", 1)
+                    .replace("/", "-")
+                )
                 print(url)
-                fn2 = "images/{}".format(filename)
-                try:
-                    descrambler.ImageDescrambler.descramble_url(
-                        url, offset, fn2)
-                except ValueError:
-                    print("failed descrambling {} {} to {}".format(
-                        url, offset, fn2))
+                output_filename = Path("images/{}".format(filename))
+                descrambler.ImageDescrambler.descramble_url(
+                    url, offset, output_filename
+                )
             seen.add(id)
 
-    with open('seen', 'wb') as f:
+    save_seen(seen)
+
+
+def save_seen(seen):
+    with open("seen", "wb") as f:
         pickle.dump(seen, f)
-        # return
