@@ -58,6 +58,9 @@ def liked():
                 return
             html = story["html"]
             soup = BeautifulSoup(html, "html.parser")
+            if len(soup.select("[data-tag='NSFW']")) == 0:
+                print("story is SFW, skipping")
+                continue
             for img in soup.select("[data-large-image]"):
                 url = img.get("data-large-image")
                 offset = img.get("data-scrambler-offset")
