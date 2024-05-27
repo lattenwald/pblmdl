@@ -76,7 +76,7 @@ def liked():
                     .replace("/", "-")
                 )
                 print(url)
-                output_filename = Path("images/{}".format(filename))
+                output_filename = Path("pikabu/{}".format(filename))
                 descrambler.ImageDescrambler.descramble_url(
                     url, offset, output_filename
                 )
