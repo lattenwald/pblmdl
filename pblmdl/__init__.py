@@ -2,6 +2,7 @@ import requests
 import json
 import time
 import pickle
+import shutil
 from pblmdl import descrambler
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
@@ -51,13 +52,14 @@ def liked():
 
         for story in stories:
             id = story["id"]
-            print("id: {}".format(id))
+            html = story["html"]
             if id in seen:
-                print("already seen, finishing")
+                print("story [{}] already seen, finishing".format(id))
                 save_seen(seen)
                 return
-            html = story["html"]
             soup = BeautifulSoup(html, "html.parser")
+            story_url = soup.select("a.story__title-link")[0].get("href")
+            print("story [{}] {}".format(id, story_url))
             if len(soup.select("[data-tag='NSFW']")) == 0:
                 print("story is SFW, skipping")
                 continue
@@ -75,11 +77,30 @@ def liked():
                     .replace("/post_img/", "", 1)
                     .replace("/", "-")
                 )
-                print(url)
+                print("img: {}".format(url))
                 output_filename = Path("pikabu/{}".format(filename))
                 descrambler.ImageDescrambler.descramble_url(
                     url, offset, output_filename
                 )
+            for vid in soup.select("div.player"):
+                # return vid
+                # url = vid.get("data-webm")
+                url = vid.get("data-source")
+                if url is None:
+                    print("didn't find video url at story {}".format(id))
+                    continue
+                url = url + ".mp4"
+                print("vid: {}".format(url))
+                parsed_url = urlparse(url)
+                path = parsed_url.path
+                filename = (
+                    path.replace("/video/", "", 1)
+                    .replace("/post_img/", "", 1)
+                    .replace("/", "-")
+                )
+                response = s.get(url, stream=True)
+                with open("pikabu/{}".format(filename), "wb") as out:
+                    shutil.copyfileobj(response.raw, out)
             seen.add(id)
 
     save_seen(seen)

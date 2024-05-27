@@ -11,7 +11,9 @@ class ImageDescrambler:
     @staticmethod
     def descramble_url(url: str, offset: int, to: Path) -> None:
         response = requests.get(url)
-        response.raise_for_status()
+        if response.status_code != 200:
+            print("failed downloading {}: {}".format(url, response.status_code))
+            return None
         data = bytearray(response.content)
         ImageDescrambler.descramble(data, offset, to)
 
