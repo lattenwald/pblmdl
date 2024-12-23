@@ -60,7 +60,7 @@ def liked():
             soup = BeautifulSoup(html, "html.parser")
             story_url = soup.select("a.story__title-link")[0].get("href")
             print("story [{}] {}".format(id, story_url))
-            if len(soup.select("[data-tag='NSFW']")) == 0:
+            if len(soup.select("[data-tag='18+']")) == 0:
                 print("story is SFW, skipping")
                 continue
             for img in soup.select("[data-large-image]"):
